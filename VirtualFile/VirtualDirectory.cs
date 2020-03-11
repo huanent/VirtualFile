@@ -33,12 +33,22 @@ namespace VirtualFile
             Source = source;
         }
 
-        public virtual IEnumerable<VirtualFile> GetFiles()
+        public virtual string[] GetFiles()
         {
             return VirtualResources.GetFiles(Path);
         }
 
-        public virtual IEnumerable<VirtualDirectory> GetDirectories()
+        public virtual string[] GetFiles(string searchPattern)
+        {
+            return VirtualResources.GetFiles(Path, searchPattern);
+        }
+
+        public virtual string[] GetFiles(string searchPattern, SearchOption searchOption)
+        {
+            return VirtualResources.GetFiles(Path, searchPattern, searchOption);
+        }
+
+        public virtual string[] GetDirectories()
         {
             return VirtualResources.GetDirectories(Path);
         }

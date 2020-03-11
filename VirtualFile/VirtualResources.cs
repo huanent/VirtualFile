@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace VirtualFile
 {
@@ -83,22 +84,77 @@ namespace VirtualFile
             return (entry as VirtualFile).ReadAllText();
         }
 
-        public static IEnumerable<VirtualFile> GetFiles(string path)
+        public static string[] GetFiles(string path)
         {
+            if (_instance.IncludePhysical && Directory.Exists(path))
+            {
+                return Directory.GetFiles(path);
+            }
+
             path = Helper.NormalizePath(path);
 
             return Entries
                 .Where(w => w.Value.Directory == path && w.Value is VirtualFile)
-                .Select(s => (VirtualFile)s.Value);
+                .Select(s => s.Value.Path)
+                .ToArray();
+        }
+        public static string[] GetFiles(string path, string searchPattern)
+        {
+            if (_instance.IncludePhysical && Directory.Exists(path))
+            {
+                return Directory.GetFiles(path, searchPattern);
+            }
+
+            path = Helper.NormalizePath(path);
+            var reg = Helper.GetWildcardRegexString(searchPattern);
+
+            return Entries
+                .Where(w => w.Value.Directory == path && Regex.IsMatch(w.Key, reg) && w.Value is VirtualFile)
+                .Select(s => s.Value.Path)
+                .ToArray();
         }
 
-        public static IEnumerable<VirtualDirectory> GetDirectories(string path)
+        public static string[] GetFiles(string path, string searchPattern, SearchOption searchOption)
         {
+            if (_instance.IncludePhysical && Directory.Exists(path))
+            {
+                return Directory.GetFiles(path, searchPattern, searchOption);
+            }
+
+            path = Helper.NormalizePath(path);
+            var reg = Helper.GetWildcardRegexString(searchPattern);
+
+            IEnumerable<KeyValuePair<string, IEntry>> entries = Entries;
+
+            if (searchOption == SearchOption.TopDirectoryOnly)
+            {
+                entries = entries.Where(w => w.Value.Directory == path);
+            }
+            else
+            {
+                entries = entries.Where(w => w.Key.StartsWith(path));
+            }
+
+            return entries
+                .Where(w => Regex.IsMatch(w.Key, reg) && w.Value is VirtualFile)
+                .Select(s => s.Value.Path)
+                .ToArray();
+        }
+
+
+        public static string[] GetDirectories(string path)
+        {
+            if (_instance.IncludePhysical && Directory.Exists(path))
+            {
+                return Directory.GetDirectories(path);
+            }
+
             path = Helper.NormalizePath(path);
 
             return Entries
                     .Where(w => w.Value.Directory == path && w.Value is VirtualDirectory)
-                    .Select(s => (VirtualDirectory)s.Value);
+                    .Select(s => s.Value.Path)
+                    .ToArray();
         }
     }
 }
