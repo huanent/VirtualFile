@@ -25,15 +25,15 @@ namespace VirtualFile
         public static bool FileExists(string path)
         {
             if (IncludePhysical && File.Exists(path)) return true;
-            path = path.ToLower();
-            return _instance.Entries.TryGetValue(path, out var entry) && !entry.IsDirectory;
+            path = Helper.NormalizePath(path);
+            return _instance.Entries.TryGetValue(path, out var entry) && entry is VirtualFile;
         }
 
         public static bool DirectoryExists(string path)
         {
             if (IncludePhysical && Directory.Exists(path)) return true;
-            path = path.ToLower();
-            return _instance.Entries.TryGetValue(path, out var entry) && entry.IsDirectory;
+            path = Helper.NormalizePath(path);
+            return _instance.Entries.TryGetValue(path, out var entry) && entry is VirtualDirectory;
         }
 
         public static byte[] ReadAllBytes(string path)
@@ -43,7 +43,8 @@ namespace VirtualFile
                 return File.ReadAllBytes(path);
             }
 
-            if (!_instance.Entries.TryGetValue(path, out var entry) || entry.IsDirectory)
+            path = Helper.NormalizePath(path);
+            if (!_instance.Entries.TryGetValue(path, out var entry) || entry is VirtualDirectory)
             {
                 throw new FileNotFoundException();
             }
@@ -58,7 +59,8 @@ namespace VirtualFile
                 return File.Open(path, fileMode);
             }
 
-            if (!_instance.Entries.TryGetValue(path, out var entry) || entry.IsDirectory)
+            path = Helper.NormalizePath(path);
+            if (!_instance.Entries.TryGetValue(path, out var entry) || entry is VirtualDirectory)
             {
                 throw new FileNotFoundException();
             }
@@ -66,14 +68,15 @@ namespace VirtualFile
             return (entry as VirtualFile).Open();
         }
 
-        public string ReadAllText(string path)
+        public static string ReadAllText(string path)
         {
             if (IncludePhysical && File.Exists(path))
             {
                 return File.ReadAllText(path);
             }
 
-            if (!_instance.Entries.TryGetValue(path, out var entry) || entry.IsDirectory)
+            path = Helper.NormalizePath(path);
+            if (!_instance.Entries.TryGetValue(path, out var entry) || entry is VirtualDirectory)
             {
                 throw new FileNotFoundException();
             }

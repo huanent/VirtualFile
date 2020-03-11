@@ -6,7 +6,6 @@ namespace VirtualFile
 {
     public abstract class VirtualDirectory : IEntry
     {
-        public bool IsDirectory => true;
 
         public abstract string Path { get; }
 

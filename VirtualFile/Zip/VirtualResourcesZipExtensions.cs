@@ -14,12 +14,13 @@ namespace VirtualFile.Zip
             var file = File.OpenRead(zipPath);
             var zipArchive = new ZipArchive(file);
             var fullPath = Path.GetFullPath(zipPath);
-            
+
             var dir = Path.Combine(Path.GetDirectoryName(fullPath), Path.GetFileNameWithoutExtension(fullPath));
 
             foreach (var item in zipArchive.Entries)
             {
-                var path = Path.Combine(dir, item.FullName).ToLower();
+                var path = Path.Combine(dir, item.FullName);
+                path = Helper.NormalizePath(path);
                 IEntry entry;
 
                 if (item.Name == string.Empty)

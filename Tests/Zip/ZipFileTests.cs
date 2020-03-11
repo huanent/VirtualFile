@@ -18,7 +18,22 @@ namespace VirtualFile.Zip.Tests
                 a.LoadZip("test.zip");
             });
 
-            var result = VirtualResources.ReadAllBytes(Path.Combine("test", "TestPage.html"));
+            var result = VirtualResources.ReadAllBytes("test/TestPage.html");
+
+            Assert.IsTrue(result.Length > 0);
+        }
+
+        [TestMethod()]
+        public void ReadAllTextTest()
+        {
+            VirtualResources.Setup(a =>
+            {
+                a.LoadZip("test.zip");
+            });
+
+            var result = VirtualResources.ReadAllText("test/TestPage.html");
+
+            Assert.IsTrue(result.Length > 0);
         }
     }
 }

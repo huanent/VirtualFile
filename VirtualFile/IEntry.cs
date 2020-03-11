@@ -8,8 +8,6 @@ namespace VirtualFile
     {
         string Source { get; }
 
-        bool IsDirectory { get; }
-
         string Path { get; }
     }
 }

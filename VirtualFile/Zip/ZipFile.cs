@@ -52,9 +52,7 @@ namespace VirtualFile.Zip
                 if (_useCache) _cache = bytes;
             }
 
-            var sb = new StringBuilder();
-            sb.Append(bytes);
-            return sb.ToString();
+            return Encoding.Default.GetString(bytes);
         }
     }
 }
