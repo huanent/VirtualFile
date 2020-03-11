@@ -9,5 +9,7 @@ namespace VirtualFile
         string Source { get; }
 
         string Path { get; }
+
+        string Directory { get; }
     }
 }

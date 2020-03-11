@@ -7,9 +7,30 @@ namespace VirtualFile
 {
     public abstract class VirtualFile : IEntry
     {
-        public abstract string Path { get; }
+        string _directory = null;
 
-        public abstract string Source { get; }
+        public string Path { get; }
+
+        public string Source { get; }
+
+        public string Directory
+        {
+            get
+            {
+                if (_directory == null)
+                {
+                    _directory = System.IO.Path.GetDirectoryName(Path);
+                }
+
+                return _directory;
+            }
+        }
+
+        protected VirtualFile(string path, string source)
+        {
+            Path = path;
+            Source = source;
+        }
 
         public abstract Stream Open();
 

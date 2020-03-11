@@ -2,20 +2,19 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace VirtualFile
 {
     public class VirtualResources
     {
-        static VirtualResources _instance = new Lazy<VirtualResources>(() => new VirtualResources(), true).Value;
-        public static bool IncludePhysical { get; set; }
-        public ConcurrentDictionary<string, IEntry> Entries { get; }
+        static readonly VirtualResources _instance = new Lazy<VirtualResources>(() => new VirtualResources(), true).Value;
+        internal readonly ConcurrentDictionary<string, IEntry> _entries = new ConcurrentDictionary<string, IEntry>();
 
-        public VirtualResources()
-        {
-            Entries = new ConcurrentDictionary<string, IEntry>();
-        }
+        public bool IncludePhysical { get; set; }
+
+        public static ConcurrentDictionary<string, IEntry> Entries => _instance._entries;
 
         public static void Setup(Action<VirtualResources> action)
         {
@@ -24,27 +23,27 @@ namespace VirtualFile
 
         public static bool FileExists(string path)
         {
-            if (IncludePhysical && File.Exists(path)) return true;
+            if (_instance.IncludePhysical && File.Exists(path)) return true;
             path = Helper.NormalizePath(path);
-            return _instance.Entries.TryGetValue(path, out var entry) && entry is VirtualFile;
+            return _instance._entries.TryGetValue(path, out var entry) && entry is VirtualFile;
         }
 
         public static bool DirectoryExists(string path)
         {
-            if (IncludePhysical && Directory.Exists(path)) return true;
+            if (_instance.IncludePhysical && Directory.Exists(path)) return true;
             path = Helper.NormalizePath(path);
-            return _instance.Entries.TryGetValue(path, out var entry) && entry is VirtualDirectory;
+            return _instance._entries.TryGetValue(path, out var entry) && entry is VirtualDirectory;
         }
 
         public static byte[] ReadAllBytes(string path)
         {
-            if (IncludePhysical && File.Exists(path))
+            if (_instance.IncludePhysical && File.Exists(path))
             {
                 return File.ReadAllBytes(path);
             }
 
             path = Helper.NormalizePath(path);
-            if (!_instance.Entries.TryGetValue(path, out var entry) || entry is VirtualDirectory)
+            if (!_instance._entries.TryGetValue(path, out var entry) || entry is VirtualDirectory)
             {
                 throw new FileNotFoundException();
             }
@@ -60,7 +59,7 @@ namespace VirtualFile
             }
 
             path = Helper.NormalizePath(path);
-            if (!_instance.Entries.TryGetValue(path, out var entry) || entry is VirtualDirectory)
+            if (!_instance._entries.TryGetValue(path, out var entry) || entry is VirtualDirectory)
             {
                 throw new FileNotFoundException();
             }
@@ -70,18 +69,36 @@ namespace VirtualFile
 
         public static string ReadAllText(string path)
         {
-            if (IncludePhysical && File.Exists(path))
+            if (_instance.IncludePhysical && File.Exists(path))
             {
                 return File.ReadAllText(path);
             }
 
             path = Helper.NormalizePath(path);
-            if (!_instance.Entries.TryGetValue(path, out var entry) || entry is VirtualDirectory)
+            if (!_instance._entries.TryGetValue(path, out var entry) || entry is VirtualDirectory)
             {
                 throw new FileNotFoundException();
             }
 
             return (entry as VirtualFile).ReadAllText();
+        }
+
+        public static IEnumerable<VirtualFile> GetFiles(string path)
+        {
+            path = Helper.NormalizePath(path);
+
+            return Entries
+                .Where(w => w.Value.Directory == path && w.Value is VirtualFile)
+                .Select(s => (VirtualFile)s.Value);
+        }
+
+        public static IEnumerable<VirtualDirectory> GetDirectories(string path)
+        {
+            path = Helper.NormalizePath(path);
+
+            return Entries
+                    .Where(w => w.Value.Directory == path && w.Value is VirtualDirectory)
+                    .Select(s => (VirtualDirectory)s.Value);
         }
     }
 }

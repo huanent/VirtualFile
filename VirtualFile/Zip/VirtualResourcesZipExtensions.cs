@@ -11,6 +11,7 @@ namespace VirtualFile.Zip
         public static void LoadZip(this VirtualResources virtualResources, string zipPath, bool cache = false)
         {
             if (!File.Exists(zipPath)) throw new FileNotFoundException();
+            zipPath = Helper.NormalizePath(zipPath);
             var file = File.OpenRead(zipPath);
             var zipArchive = new ZipArchive(file);
             var fullPath = Path.GetFullPath(zipPath);
@@ -25,14 +26,14 @@ namespace VirtualFile.Zip
 
                 if (item.Name == string.Empty)
                 {
-                    entry = new ZipDirectory(item);
+                    entry = new VirtualDirectory(path, "zip");
                 }
                 else
                 {
-                    entry = new ZipFile(item, cache);
+                    entry = new ZipFile(item, path, zipPath, cache);
                 }
 
-                virtualResources.Entries[path] = entry;
+                virtualResources._entries[path] = entry;
             }
         }
     }

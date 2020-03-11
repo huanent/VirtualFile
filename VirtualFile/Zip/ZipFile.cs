@@ -12,17 +12,15 @@ namespace VirtualFile.Zip
         readonly bool _useCache;
         byte[] _cache;
 
-        public ZipFile(ZipArchiveEntry zipArchiveEntry, bool useCache)
+        public ZipFile(ZipArchiveEntry zipArchiveEntry, string path, string zipPath, bool useCache) : base(path, "zip")
         {
             _zipArchiveEntry = zipArchiveEntry;
             _useCache = useCache;
+            ZipPath = zipPath;
         }
 
-        public override string Path { get; }
 
-        public override string Name { get; }
-
-        public override string Source => "zip";
+        public string ZipPath { get; set; }
 
         public override Stream Open()
         {
